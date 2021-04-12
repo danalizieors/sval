@@ -17,8 +17,10 @@ class Sval {
 
   private options: Options = {}
   private scope = new Scope(null, true)
+  private ast: Node
 
   exports: { [name: string]: any } = {}
+  debugger: any = null
 
   constructor(options: SvalOptions = {}) {
     let { ecmaVer = 9, sandBox = true } = options
@@ -70,6 +72,31 @@ class Sval {
     const ast = typeof code === 'string' ? parse(code, this.options) as Node : code
     hoist(ast as Program, this.scope)
     evaluate(ast, this.scope)
+  }
+
+  debug(code: string | Node) {
+    this.debugger = {
+      replaying: false,
+      running: false,
+      terminated: false
+    }
+    this.import({ debugger: this.debugger })
+
+    this.ast = typeof code === 'string' ? parse(code, this.options) as Node : code
+    hoist(this.ast as Program, this.scope)
+  }
+
+  resume() {
+    this.debugger.running = true
+
+    evaluate(this.ast, this.scope)
+
+    if (this.debugger.running) {
+      this.debugger.terminated = true
+    } else {
+      this.debugger.replay = true
+    }
+    this.debugger.running = false
   }
 }
 

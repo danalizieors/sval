@@ -42,8 +42,15 @@ export function* EmptyStatement(): IterableIterator<any> {
   // No operation here
 }
 
-export function* DebuggerStatement(): IterableIterator<any> {
-  debugger
+export function* DebuggerStatement(_: any, scope: Scope): IterableIterator<any> {
+  const debug = scope.find('debugger')?.get()
+
+  if (debug) {
+    if (debug.running && !debug.replay ) {
+      debug.running = false
+    }
+    debug.replay = !debug.replay
+  }
 }
 
 export function* ReturnStatement(node: estree.ReturnStatement, scope: Scope) {

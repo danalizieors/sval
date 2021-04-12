@@ -13,7 +13,9 @@ import * as pattern from './pattern'
 let evaluateOps: any
 
 export default function* evaluate(node: Node, scope: Scope) {
-  if (!node) return
+  const debug = scope.find('debugger')?.get()
+
+  if (!node || (debug && !debug.running)) return
 
   // delay initalizing to remove circular reference issue for jest
   if (!evaluateOps) {
