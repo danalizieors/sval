@@ -12,7 +12,12 @@ import * as pattern from './pattern'
 
 let evaluateOps: any
 
-export default function* evaluate(node: Node, scope: Scope) {
+type Cached = {
+  scopeCache?: { scope: Scope }
+  yieldedCache?: { yielded: any }
+}
+
+export default function* evaluate(node: Node & Cached, scope: Scope) {
   const debug = scope.find('debugger')?.get()
 
   if (!node || (debug && !debug.running)) return
@@ -33,6 +38,25 @@ export default function* evaluate(node: Node, scope: Scope) {
 
   const handler = evaluateOps[node.type]
   if (handler) {
+    if (debug) {
+      node.scopeCache = { scope }
+      
+      let yielded
+      if (debug.replaying) {
+        if (node.yieldedCache) {
+          yielded = node.yieldedCache.yielded
+        } else {
+          yielded = yield* handler(node, node.scopeCache.scope)
+        }
+      } else {
+        yielded = yield* handler(node, scope)
+      }
+
+      node.yieldedCache = debug.running && { yielded }
+
+      return yielded
+    }
+
     return yield* handler(node, scope)
   } else {
     throw new Error(`${node.type} isn't implemented`)

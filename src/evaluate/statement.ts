@@ -46,10 +46,10 @@ export function* DebuggerStatement(_: any, scope: Scope): IterableIterator<any> 
   const debug = scope.find('debugger')?.get()
 
   if (debug) {
-    if (debug.running && !debug.replay ) {
+    if (!debug.replaying) {
       debug.running = false
     }
-    debug.replay = !debug.replay
+    debug.replaying = !debug.replaying
   }
 }
 

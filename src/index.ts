@@ -91,11 +91,7 @@ class Sval {
 
     evaluate(this.ast, this.scope)
 
-    if (this.debugger.running) {
-      this.debugger.terminated = true
-    } else {
-      this.debugger.replay = true
-    }
+    this.debugger.terminated = this.debugger.running
     this.debugger.running = false
   }
 }
