@@ -12,6 +12,7 @@ export default class Scope {
    * @readonly
    */
   private readonly parent: Scope | null
+  
   /**
    * To distinguish function scope and block scope
    * The value is true for function scope or false for block scope
@@ -19,6 +20,11 @@ export default class Scope {
    * @readonly
    */
   private readonly isolated: boolean
+
+  /**
+   * Denotes whether or not the scope was hoisted
+   */
+   hoisted = false
 
   /**
    * Context simulation object

@@ -27,7 +27,8 @@ export function* BlockStatement(
   const subScope = invasived ? scope : new Scope(scope)
 
   if (!hoisted) {
-    yield* hoist(block, subScope, { onlyBlock: true })
+    if (!subScope.hoisted) yield* hoist(block, subScope, { onlyBlock: true })
+    subScope.hoisted = true
   }
 
   for (let i = 0; i < block.body.length; i++) {

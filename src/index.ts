@@ -1,10 +1,9 @@
 import { getOwnNames, createSandBox, globalObj, assign } from './share/util'
 import { version } from '../package.json'
 import { parse, Options } from 'acorn'
-import { Node, Program } from 'estree'
+import { Node } from 'estree'
 import Scope from './scope'
 
-import { hoist } from './evaluate_n/helper'
 import evaluate from './evaluate_n'
 
 export interface SvalOptions {
@@ -70,7 +69,7 @@ class Sval {
 
   run(code: string | Node) {
     const ast = typeof code === 'string' ? parse(code, this.options) as Node : code
-    hoist(ast as Program, this.scope)
+    this.scope.hoisted = false
     evaluate(ast, this.scope)
   }
 
@@ -83,7 +82,6 @@ class Sval {
     this.import({ debugger: this.debugger })
 
     this.ast = typeof code === 'string' ? parse(code, this.options) as Node : code
-    hoist(this.ast as Program, this.scope)
   }
 
   resume() {
