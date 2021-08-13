@@ -165,7 +165,9 @@ export function createFunc(
 
     let result: any
     if (node.body.type === 'BlockStatement') {
-      yield* hoist(node.body, subScope)
+      if (!subScope.hoisted) yield* hoist(node.body, subScope)
+      subScope.hoisted = true
+
       result = yield* BlockStatement(node.body, subScope, {
         invasived: true,
         hoisted: true

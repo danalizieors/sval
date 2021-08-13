@@ -14,6 +14,12 @@ export default class Scope {
   private readonly parent: Scope | null
   
   /**
+   * The child scope along the scope chain
+   * @private
+   */
+  private child: Scope | null
+  
+  /**
    * To distinguish function scope and block scope
    * The value is true for function scope or false for block scope
    * @private
@@ -24,7 +30,7 @@ export default class Scope {
   /**
    * Denotes whether or not the scope was hoisted
    */
-   hoisted = false
+  hoisted = false
 
   /**
    * Context simulation object
@@ -44,6 +50,22 @@ export default class Scope {
   ) {
     this.parent = parent
     this.isolated = isolated
+
+    const debug = this.find('debugger')?.get()
+
+    if (debug) {
+      if (parent) {
+        if (debug.replaying) {
+          const clone = parent.child
+          this.child = clone.child
+          this.hoisted = clone.hoisted
+          for (const name in clone.context) {
+            this.context[name] = clone.context[name]
+          }
+        }
+        parent.child = this
+      }
+    }
   }
 
   /**
@@ -83,7 +105,8 @@ export default class Scope {
     } else {
       // If enter this branch, the scope will be the global scope
       // And the global scope should have window object
-      const win = this.global().find('window').get()
+      const win = this.global().context['window']?.get()
+      if (!win) return null
       if (name in win) {
         // Find property in window
         return new Prop(win, name)
@@ -100,6 +123,9 @@ export default class Scope {
    * @param value variable value
    */
   var(name: string, value?: any) {
+    const debug = this.find('debugger')?.get()
+    if (debug?.replaying) return
+
     let scope: Scope = this
 
     // Find the closest function scope
@@ -134,6 +160,9 @@ export default class Scope {
    * @param value variable value
    */
   let(name: string, value: any) {
+    const debug = this.find('debugger')?.get()
+    if (debug?.replaying) return
+
     const variable = this.context[name]
     if (!variable || variable.get() === DEADZONE) {
       this.context[name] = new Var('let', value)
@@ -148,6 +177,9 @@ export default class Scope {
    * @param value variable value
    */
   const(name: string, value: any) {
+    const debug = this.find('debugger')?.get()
+    if (debug?.replaying) return
+
     const variable = this.context[name]
     if (!variable || variable.get() === DEADZONE) {
       this.context[name] = new Var('const', value)
@@ -162,6 +194,9 @@ export default class Scope {
    * @param value function
    */
   func(name: string, value: any) {
+    const debug = this.find('debugger')?.get()
+    if (debug?.replaying) return
+    
     const variable = this.context[name]
     if (!variable || variable.kind === 'var') {
       this.context[name] = new Var('var', value)
